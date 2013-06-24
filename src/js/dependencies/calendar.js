@@ -69,7 +69,7 @@
 				container.children('#cal-' + containerid + '-cnt').find('#cal-' + containerid + '-weekdays, .cal-month, #cal-' + containerid + '-days').remove();
 				objCalendar = container.children('#cal-' + containerid + '-cnt');
 			} else {
-				objCalendar = $('<div id="cal-' + containerid + '-cnt" class="cal-cnt"></div>');
+				objCalendar = $('<table id="cal-' + containerid + '-cnt" class="cal-cnt"></table>');
 				container.append(objCalendar);
 			}
 
@@ -77,7 +77,7 @@
 			if (container.children('#cal-' + containerid + '-cnt').children('.cal-header').length > 0) {
 				calHeader = container.children('#cal-' + containerid + '-cnt').children('.cal-header');
 			} else {
-				calHeader = $('<div class="cal-header"></div>');
+				calHeader = $('<caption class="cal-header"></caption>');
 			}
 
 			calHeader.prepend('<div class="cal-month">' + _pe.dic.get('%calendar-monthNames')[month] + ' ' + year + '</div>');
@@ -98,7 +98,7 @@
 
 			//Creates the rest of the calendar | Cree le reste du calendrier
 			days = _pe.fn.calendar.createDays(containerid, year, month);
-			daysList = days.children('ol.cal-day-list').children('li');
+			daysList = days.find('td').not('.cal-index-0');
 			objCalendar.append(days);
 
 			//Trigger the calendarDisplayed Event
@@ -352,24 +352,24 @@
 		},
 
 		createWeekdays : function (calendarid) {
-			var weekdays = $('<ol id="cal-' + calendarid + '-weekdays" class="cal-weekdays" role="presentation"></ol>'),
+			var weekdays = $('<tr></tr>'),
 				wd,
 				txt,
 				wday;
 			for (wd = 0; wd < 7; wd += 1) {
 				txt = _pe.dic.get('%calendar-weekDayNames')[wd];
-				wday = $('<li id="cal-' + calendarid + '-wd' + (wd + 1) + '" class="cal-wd' + (wd + 1) + '"><abbr title="' + txt + '">' + txt.substr(0, 1) + '</abbr></li>');
+				wday = $('<th id="cal-' + calendarid + '-wd' + (wd + 1) + '" class="cal-wd' + (wd + 1) + '"><abbr title="' + txt + '">' + txt.substr(0, 1) + '</abbr></th>');
 				if (wd === 0 || wd === 6) {
 					wday.addClass = 'we';
 				}
 				weekdays.append(wday);
 			}
-			return weekdays;
+
+			return weekdays.wrap('<thead id="cal-' + calendarid + '-weekdays" class="cal-weekdays" role="presentation"></thead>').parent();
 		},
 
 		createDays : function (calendarid, year, month) {
-			var cells = $('<div id="cal-' + calendarid + '-days" class="cal-days"></div>'),
-				days = $('<ol id="cal-' + calendarid + '-' + month + '_' + year + '" class="cal-day-list"></ol>'),
+			var cells = $('<tbody id="cal-' + calendarid + '-days" class="cal-days"></tbody>'),
 				date = new Date(),
 				firstday,
 				lastday,
@@ -401,24 +401,20 @@
 			breakAtEnd = false;
 
 			for (week = 1; week < 7; week += 1) {
+				elementParent = $('<tr></tr>');
 				for (day = 0; day < 7; day += 1) {
 					if ((week === 1 && day < firstday) || (daycount > lastday)) {
 						//Creates empty cells | Cree les cellules vides
-						element = $('<span class="cal-empty">' + String.fromCharCode(160) + '</span>');
-						elementParent = cells;
+						element = $('<td class="cal-empty">' + String.fromCharCode(160) + '</td>');
 					} else {
 						//Creates date cells | Cree les cellules de date
 						daycount += 1;
 						isCurrentDate = (daycount === date.getDate() && month === date.getMonth() && year === date.getFullYear());
 
-						if (daycount === 1) {
-							cells.append(days);
-						}
 						if (daycount > lastday) {
 							breakAtEnd = true;
 						}
-						element = $('<li><div><span class="wb-invisible">' + textWeekDayNames[day] + (frenchLang ? (' </span>' + daycount + '<span class="wb-invisible"> ' + textMonthNames[month].toLowerCase() + ' ') : (' ' + textMonthNames[month] + ' </span>' + daycount + '<span class="wb-invisible"> ')) + year + (isCurrentDate ? textCurrentDay : '') + '</span></div></li>');
-						elementParent = days;
+						element = $('<td><div><span class="wb-invisible">' + textWeekDayNames[day] + (frenchLang ? (' </span>' + daycount + '<span class="wb-invisible"> ' + textMonthNames[month].toLowerCase() + ' ') : (' ' + textMonthNames[month] + ' </span>' + daycount + '<span class="wb-invisible"> ')) + year + (isCurrentDate ? textCurrentDay : '') + '</span></div></td>');
 					}
 					element.attr('id', 'cal-' + calendarid + '-w' + week + 'd' + (day + 1)).addClass('cal-w' + week + 'd' + (day + 1) + ' cal-index-' + daycount);
 
@@ -430,6 +426,7 @@
 					}
 					elementParent.append(element);
 				}
+				cells.append(elementParent);
 				if (breakAtEnd) {
 					break;
 				}

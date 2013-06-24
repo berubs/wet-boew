@@ -114,7 +114,8 @@
 							date.setFullYear(strDate1[0], strDate1[1], strDate1[2]);
 
 							// now loop in events to load up all the days that it would be on tomorrow.setDate(tomorrow.getDate() + 1);
-							for (z = 0, _zlen = _pe.date.daysBetween(strDate1, strDate2) + 1; z <= _zlen; z += 1) {
+							// for (z = 0, _zlen = _pe.date.daysBetween(strDate1, strDate2) + 1; z <= _zlen; z += 1) {
+							for (z = 0, _zlen = _pe.date.daysBetween(strDate1, strDate2) + 1; z < _zlen; z += 1) {
 								if (events.minDate === null || date < events.minDate) {
 									events.minDate = date;
 								}
@@ -316,6 +317,7 @@
 						// lets see if the cell is empty is so lets create the cell
 						if (day.children('a').length < 1) {
 							day.empty();
+							day.addClass('ev-stuff'); // TODO: change name
 							link = $('<a href="#ev-' + day.attr('id') + '" class="cal-event">' + content + '</a>');
 							day.append(link);
 							dayEvents = $('<ul class="wb-invisible"></ul>');

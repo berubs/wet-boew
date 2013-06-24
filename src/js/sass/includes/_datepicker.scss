@@ -16,12 +16,15 @@
 %datepicker-margin-0 {
 	margin: 0;
 }
- 
+
 .cal-container {
 	&.picker-overlay {
 		position: absolute;
 		z-index: 498 !important;
 		margin-top: -2em;
+	}
+	.cal-cnt {
+		margin: 0;
 	}
 }
 
