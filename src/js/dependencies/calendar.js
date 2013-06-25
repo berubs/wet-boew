@@ -69,7 +69,8 @@
 				container.children('#cal-' + containerid + '-cnt').find('#cal-' + containerid + '-weekdays, .cal-month, #cal-' + containerid + '-days').remove();
 				objCalendar = container.children('#cal-' + containerid + '-cnt');
 			} else {
-				objCalendar = $('<table id="cal-' + containerid + '-cnt" class="cal-cnt"></table>');
+				objCalendar = $('<table id="cal-' + containerid + '-cnt" class="cal-cnt" role="grid" aria-readonly="true"></table>');
+				objCalendar.on('keydown', 'td.ev-stuff', _pe.fn.calendar.keyboardNavCell);
 				container.append(objCalendar);
 			}
 
@@ -352,7 +353,7 @@
 		},
 
 		createWeekdays : function (calendarid) {
-			var weekdays = $('<tr></tr>'),
+			var weekdays = $('<tr role="row"></tr>'),
 				wd,
 				txt,
 				wday;
@@ -366,6 +367,74 @@
 			}
 
 			return weekdays.wrap('<thead id="cal-' + calendarid + '-weekdays" class="cal-weekdays" role="presentation"></thead>').parent();
+		},
+
+		keyboardNavCell: function (e) {
+			var $table = $(e.delegateTarget),
+				$cell = $(e.target),
+				index = $cell.index();
+
+			// Actionable mode
+			if ($table.data('ariaMode') === 'action') {
+				switch (e.keyCode) {
+				case 27: // Escape
+					// Go in 'navigation' mode
+					$table.find('.cal-event').attr('tabindex', '-1');
+					$table.data('ariaMode', 'nav');
+					_pe.focus($cell.closest('td'));
+					return false;
+				}
+			} else { // Navigation mode
+				switch (e.keyCode) {
+				case 13: // Enter
+				case 113: // F2
+					// Turn to actionable mode
+					$table.find('.cal-event').attr('tabindex', '0');
+					$table.data('ariaMode', 'action');
+					_pe.focus($cell.find('.cal-event'));
+					return false;
+				case 27: // Escape
+					$table.find('.cal-event').attr('tabindex', '-1');
+					_pe.focus($cell.closest('td'));
+					return false;
+				case 33: // Page up
+					// focus to the first cell in the current column
+					_pe.focus($cell.parent().prevAll().last().children(':gt(' + (index - 1) + ')').not('.cal-empty').first()); // Don't focus on empty cells (?)
+					// _pe.focus($cell.parent().prevAll().last().children().first()); // Allow focus on empty cells
+					return false;
+				case 34: // Page down
+					// focus to the last cell in the current column 
+					_pe.focus($cell.parent().nextAll().last().children(':lt(' + (index + 1) + ')').not('.cal-empty').last()); // Don't focus on empty cells (?)
+					// _pe.focus($cell.parent().nextAll().last().children().first()); // Allow focus on empty cells
+					return false;
+				case 35: // End
+					// focus to the last cell in the current row. 
+					_pe.focus($cell.nextAll().last());
+					return false;
+				case 36: // Home
+					// focus to the first cell of the current row. 
+					_pe.focus($cell.prevAll().last());
+					return false;
+				case 37: // Left arrow
+					// focus to previous cell (don't wrap).
+					_pe.focus($cell.prev());
+					return false;
+				case 38: // Up arrow
+					// focus to previous row (don't wrap).
+					_pe.focus($cell.parent().prev().children(':gt(' + (index - 1) + ')').not('.cal-empty').first()); // Don't focus on empty cells (?)
+					// _pe.focus($cell.parent().prev().children().first()); // Allow focus on empty cells
+					return false;
+				case 39: // Right arrow
+					// focus to next cell (don't wrap).
+					_pe.focus($cell.next());
+					return false;
+				case 40: // Down arrow
+					// focus to next row (don't wrap).
+					_pe.focus($cell.parent().next().children(':lt(' + (index + 1) + ')').not('.cal-empty').last()); // Don't focus on empty cells (?)
+					// _pe.focus($cell.parent().next().children().last()); // Allow focus on empty cells
+					return false;
+				}
+			}
 		},
 
 		createDays : function (calendarid, year, month) {
@@ -401,7 +470,7 @@
 			breakAtEnd = false;
 
 			for (week = 1; week < 7; week += 1) {
-				elementParent = $('<tr></tr>');
+				elementParent = $('<tr role="row"></tr>');
 				for (day = 0; day < 7; day += 1) {
 					if ((week === 1 && day < firstday) || (daycount > lastday)) {
 						//Creates empty cells | Cree les cellules vides
@@ -414,16 +483,39 @@
 						if (daycount > lastday) {
 							breakAtEnd = true;
 						}
+
 						element = $('<td><div><span class="wb-invisible">' + textWeekDayNames[day] + (frenchLang ? (' </span>' + daycount + '<span class="wb-invisible"> ' + textMonthNames[month].toLowerCase() + ' ') : (' ' + textMonthNames[month] + ' </span>' + daycount + '<span class="wb-invisible"> ')) + year + (isCurrentDate ? textCurrentDay : '') + '</span></div></td>');
 					}
-					element.attr('id', 'cal-' + calendarid + '-w' + week + 'd' + (day + 1)).addClass('cal-w' + week + 'd' + (day + 1) + ' cal-index-' + daycount);
+
+					element.attr('id', 'cal-' + calendarid + '-w' + week + 'd' + (day + 1))
+						.addClass('cal-w' + week + 'd' + (day + 1) + ' cal-index-' + daycount)
+						// .on('keydown', _pe.fn.calendar.keyboardNavCell)
+						.on('focusin', function () {
+							var $this = $(this);
+							$this.closest('table').find('td').attr({
+								tabindex: '-1'
+							});
+							$(this).attr({
+								'aria-selected': 'true',
+								tabindex: '0'
+							});
+						})
+						.on('focusout', function () {
+							$(this).attr('aria-selected', '');
+						})
+						.attr({
+							tabindex: '-1',
+							role: 'gridcell'
+						});
 
 					if (day === 0 || day === 6) {
 						element.addClass('cal-we');
 					}
+
 					if (isCurrentDate) {
 						element.addClass('cal-currentday');
 					}
+
 					elementParent.append(element);
 				}
 				cells.append(elementParent);
@@ -432,6 +524,7 @@
 				}
 			}
 
+			cells.find('td').first().attr('tabindex', 0);
 			return cells;
 		},
 

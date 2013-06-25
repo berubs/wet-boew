@@ -318,7 +318,7 @@
 						if (day.children('a').length < 1) {
 							day.empty();
 							day.addClass('ev-stuff'); // TODO: change name
-							link = $('<a href="#ev-' + day.attr('id') + '" class="cal-event">' + content + '</a>');
+							link = $('<a tabindex="-1" href="#ev-' + day.attr('id') + '" class="cal-event">' + content + '</a>');
 							day.append(link);
 							dayEvents = $('<ul class="wb-invisible"></ul>');
 

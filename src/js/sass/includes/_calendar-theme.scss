@@ -66,6 +66,12 @@
 			}
 		}
 	}
+	td {
+		@include pseudo-focus {
+			@extend %cal-color-fff-important;
+			background: #333 !important;
+		}
+	}
 }
 
 .ui-mobile-viewport {
