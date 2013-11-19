@@ -387,7 +387,7 @@ var $document = vapour.doc,
 					dayCount += 1;
 					isCurrentDate = ( dayCount === currDay && month === currMonth && year === currYear );
 
-					cells += "<td id='" + id + "' class='" + ( isCurrentDate ? "cal-currday " : "" ) + className + "'><div><time datetime='" + currYear + "-" +
+					cells += "<td id='" + id + "' class='" + ( isCurrentDate ? "cal-currday " : "" ) + className + "'><div><time datetime='" + year + "-" +
 						( month < 9 ? "0" : "" ) + ( month + 1 ) + "-" + ( dayCount < 10 ? "0" : "" ) + dayCount + "'><span class='wb-inv'>" + textWeekDayNames[ day ] +
 						( frenchLang ? ( " </span>" + dayCount + "<span class='wb-inv'> " + textMonthNames[ month ].toLowerCase() + " " ) :
 						( " " + textMonthNames[ month ] + " </span>" + dayCount + "<span class='wb-inv'> " ) ) + year +
@@ -508,7 +508,7 @@ var $document = vapour.doc,
 $document.on( "create.wb-cal" , create );
 
 // Keyboard nav
-$document.on( "keydown", ".cal-days a", function ( event ) {
+$document.on( "keydown", ".cal-days td > a", function ( event ) {
 	var elm = event.target,
 		$elm = $( elm ),
 		$container = $elm.closest( ".cal-cnt" ),
@@ -520,7 +520,7 @@ $document.on( "keydown", ".cal-days a", function ( event ) {
 		currYear = date.getFullYear(),
 		currMonth = date.getMonth(),
 		currDay = date.getDate(),
-		days = elm.parentNode.parentNode.getElementsByTagName( "a" ),
+		days = $( elm.parentNode.parentNode.parentNode ).find("td > a"),
 		maxDay = days.length,
 		field, minDate, maxDate, modifier;
 
@@ -601,7 +601,7 @@ $document.on( "keydown", ".cal-days a", function ( event ) {
 		);
 		return false;
 	} else if ( currDay !== date.getDate() ) {
-		$( days[ date.getDate() - 1 ] ).trigger( "focus.wb" );
+		days.eq( date.getDate() - 1 ).trigger( "focus.wb" );
 		return false;
 	}
 });
@@ -609,7 +609,5 @@ $document.on( "keydown", ".cal-days a", function ( event ) {
 $document.on( "hideGoToFrm.wb-cal", ".cal-cnt", hideGoToFrm );
 
 $document.on( "setFocus.wb-cal", setFocus );
-
-$document.on( "click", ".cal-prvmnth, .cal-nxtmnth", changeMonth );
 
 })( jQuery, window, document, vapour );

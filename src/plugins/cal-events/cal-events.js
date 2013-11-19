@@ -81,9 +81,13 @@ var selector = ".wb-cal-evt",
 			$containerId.css( "margin-left", "10px" );
 		}
 
-		$document.on( "displayed.wb-cal", "#" + containerId, function ( event, year, month, days ) {
+		$document.on( "displayed.wb-cal", "#" + containerId, function ( event, year, month, days, focusDay ) {
 			addEvents(year, month, days, containerId, events.list);
 			showOnlyEventsFor(year, month, containerId);
+
+			if ( focusDay !== undefined ) {
+				days.eq( focusDay - 1 ).children("a").trigger( "focus.wb" );
+			}
 		});
 		$document.trigger( "create.wb-cal", [
 				containerId,
